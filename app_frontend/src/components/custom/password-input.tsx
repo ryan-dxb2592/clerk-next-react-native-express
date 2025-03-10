@@ -1,53 +1,29 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, forwardRef } from "react";
+import type { ComponentPropsWithoutRef } from "react";
+import { cn } from "@/lib/utils";
 
-const PasswordInput = ({
-  id,
-  name,
-  label,
-  placeholder,
-  forgotPassword,
-  value,
-  onChange,
-}: {
-  id: string;
-  name: string;
-  label: string;
-  placeholder: string;
+interface PasswordInputProps
+  extends Omit<ComponentPropsWithoutRef<"input">, "type"> {
   forgotPassword?: boolean;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) => {
-  const [isVisible, setIsVisible] = useState<boolean>(false);
+}
 
-  const toggleVisibility = () => setIsVisible((prevState) => !prevState);
+const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
+  ({ className, forgotPassword, ...props }, ref) => {
+    const [isVisible, setIsVisible] = useState<boolean>(false);
 
-  return (
-    <div className="*:not-first:mt-2">
-      <div className="flex items-center">
-        <Label htmlFor={id}>{label}</Label>
-        {forgotPassword && (
-          <a
-            href="#"
-            className="ml-auto text-sm underline-offset-4 hover:underline text-muted-foreground hover:text-foreground"
-          >
-            Forgot your password?
-          </a>
-        )}
-      </div>
+    const toggleVisibility = () => setIsVisible((prevState) => !prevState);
+
+    return (
       <div className="relative">
         <Input
-          id={id}
-          name={name}
-          className="pe-9"
-          placeholder={placeholder}
+          {...props}
+          ref={ref}
+          className={cn("pe-9", className)}
           type={isVisible ? "text" : "password"}
-          value={value}
-          onChange={onChange}
         />
 
         <button
@@ -65,8 +41,10 @@ const PasswordInput = ({
           )}
         </button>
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
+
+PasswordInput.displayName = "PasswordInput";
 
 export default PasswordInput;

@@ -9,12 +9,14 @@ const OtpInput = ({
   length,
   code,
   setCode,
+  disabled,
 }: {
   id: string;
   name: string;
   code: string;
   setCode: (code: string) => void;
   length: number;
+  disabled: boolean;
 }) => {
   return (
     <>
@@ -22,6 +24,7 @@ const OtpInput = ({
         id={id}
         name={name}
         value={code}
+        disabled={disabled}
         onChange={setCode}
         containerClassName="flex justify-center items-center gap-3 has-disabled:opacity-50"
         maxLength={length}

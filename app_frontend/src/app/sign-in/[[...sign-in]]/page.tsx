@@ -16,7 +16,7 @@ const SignIn = () => {
           Redirecting...
         </div>
         <div id="clerk-captcha" />
-        <AuthenticateWithRedirectCallback />;
+        <AuthenticateWithRedirectCallback />
       </div>
     );
   }
