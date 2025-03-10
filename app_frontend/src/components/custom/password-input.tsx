@@ -3,18 +3,25 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { useId, useState } from "react";
+import { useState } from "react";
 
 const PasswordInput = ({
+  id,
+  name,
   label,
   placeholder,
   forgotPassword,
+  value,
+  onChange,
 }: {
+  id: string;
+  name: string;
   label: string;
   placeholder: string;
   forgotPassword?: boolean;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
-  const id = useId();
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
@@ -35,9 +42,12 @@ const PasswordInput = ({
       <div className="relative">
         <Input
           id={id}
+          name={name}
           className="pe-9"
           placeholder={placeholder}
           type={isVisible ? "text" : "password"}
+          value={value}
+          onChange={onChange}
         />
 
         <button

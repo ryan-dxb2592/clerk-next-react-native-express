@@ -1,13 +1,12 @@
 "use client";
 import { LoginForm } from "@/components/forms/login-form";
-import AuthLayout from "@/components/layouts/authLayout";
+import AuthLayout from "@/components/layouts/auth-layout";
 import { usePathname } from "next/navigation";
 import { AuthenticateWithRedirectCallback } from "@clerk/nextjs";
 import { Spinner } from "@/components/custom/spinner";
 
 const SignIn = () => {
   const pathname = usePathname();
-  console.log(pathname);
 
   if (pathname === "/sign-in/sso-callback") {
     return (

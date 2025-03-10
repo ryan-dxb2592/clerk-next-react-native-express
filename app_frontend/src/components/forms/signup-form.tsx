@@ -14,14 +14,83 @@ import { Label } from "@/components/ui/label";
 import PasswordInput from "../custom/password-input";
 import { OAuthStrategy } from "@clerk/types";
 import { useSignUp } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import Link from "next/link";
+import OtpInput from "../custom/otp-input";
 
 export const SignUpForm: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   className,
   ...props
 }) => {
-  const { signUp } = useSignUp();
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const [emailAddress, setEmailAddress] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [code, setCode] = useState("");
+  const router = useRouter();
 
   if (!signUp) return null;
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!isLoaded) return;
+
+    if (password !== confirmPassword) {
+      console.error("Passwords do not match");
+      return;
+    }
+
+    await signUp.create({
+      emailAddress,
+      password,
+    });
+
+    // Send the user an email with the verification code
+    await signUp.prepareEmailAddressVerification({
+      strategy: "email_code",
+    });
+
+    // Set 'verifying' true to display second form
+    // and capture the OTP code
+    setVerifying(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      console.error(JSON.stringify(error, null, 2));
+    }
+  };
+
+  // Handle the submission of the verification form
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isLoaded) return;
+
+    try {
+      // Use the code the user provided to attempt verification
+      const signUpAttempt = await signUp.attemptEmailAddressVerification({
+        code,
+      });
+
+      // If verification was completed, set the session to active
+      // and redirect the user
+      if (signUpAttempt.status === "complete") {
+        await setActive({ session: signUpAttempt.createdSessionId });
+        router.push("/");
+      } else {
+        // If the status is not complete, check why. User may need to
+        // complete further steps.
+        console.error(JSON.stringify(signUpAttempt, null, 2));
+      }
+    } catch (err: unknown) {
+      // See https://clerk.com/docs/custom-flows/error-handling
+      // for more info on error handling
+      console.error("Error:", JSON.stringify(err, null, 2));
+    }
+  };
 
   const handleGoogleLogin = (strategy: OAuthStrategy) => {
     return signUp
@@ -40,6 +109,38 @@ export const SignUpForm: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
       });
   };
 
+  // Display the verification form to capture the OTP code
+  if (verifying) {
+    return (
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl">Verify your email</CardTitle>
+            <CardDescription>Enter the code sent to your email</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleVerify}>
+              <div className="grid gap-6">
+                <div className="flex flex-col gap-4">
+                  <OtpInput
+                    code={code}
+                    setCode={setCode}
+                    name="code"
+                    id="code"
+                    length={6}
+                  />
+                  <Button type="submit" className="cursor-pointer">
+                    Verify
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -50,7 +151,7 @@ export const SignUpForm: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <Button
@@ -79,15 +180,29 @@ export const SignUpForm: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
                   <Input
                     id="email"
                     type="email"
+                    name="email"
+                    value={emailAddress}
                     placeholder="m@example.com"
                     required
+                    onChange={(e) => setEmailAddress(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-3">
-                  <PasswordInput label="Password" placeholder="Password" />
+                  <PasswordInput
+                    id="password"
+                    name="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    label="Password"
+                    placeholder="Password"
+                  />
                 </div>
                 <div className="grid gap-3">
                   <PasswordInput
+                    id="confirm-password"
+                    name="confirm-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     label="Confirm Password"
                     placeholder="Confirm Password"
                   />
@@ -99,9 +214,9 @@ export const SignUpForm: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
               </div>
               <div className="text-sm text-center">
                 Already have an account?{" "}
-                <a href="#" className="underline underline-offset-4">
+                <Link href="/sign-in" className="underline underline-offset-4">
                   Login
-                </a>
+                </Link>
               </div>
             </div>
           </form>
