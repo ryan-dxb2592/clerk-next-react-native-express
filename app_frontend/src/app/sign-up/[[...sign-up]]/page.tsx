@@ -1,5 +1,12 @@
-import { SignUp } from "@clerk/nextjs";
+import { SignUpForm } from "@/components/forms/signup-form";
+import AuthLayout from "@/components/layouts/authLayout";
 
-export default function Page() {
-  return <SignUp />;
-}
+const SignUp = () => {
+  return (
+    <AuthLayout>
+      <SignUpForm />
+    </AuthLayout>
+  );
+};
+
+export default SignUp;
